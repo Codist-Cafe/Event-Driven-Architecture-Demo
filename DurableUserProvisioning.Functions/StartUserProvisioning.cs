@@ -9,7 +9,7 @@ namespace DurableUserProvisioning.Functions;
 
 public static class StartUserProvisioning
 {
-    private const string YOUR_FUNCTION_KEY = "";
+    private const string YOUR_FUNCTION_KEY = "V5bd6qMnN-O94smyaRCtSaI5-3sH8625R6Y1ctQ6L5XVAzFua4W7pw==";
     [Function("StartUserProvisioning")]
     public static async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "users/provision")] HttpRequestData req,
