@@ -26,14 +26,16 @@ jobs:
       run: terraform -chdir=infrastructure init
 
     - name: Terraform Plan
-      run: terraform -chdir=infrastructure plan \
-        -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
-        -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+      run: |
+        terraform -chdir=infrastructure plan \
+          -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
+          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
 
     - name: Terraform Apply
-      run: terraform -chdir=infrastructure apply -auto-approve \
-        -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
-        -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+      run: |
+        terraform -chdir=infrastructure apply -auto-approve \
+          -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
+          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
 
     - name: Install Azure Functions Core Tools
       run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
@@ -45,5 +47,5 @@ jobs:
 
     - name: Publish Okta Handler Function
       run: |
-        cd DurableUserProvisioning.OktaHandler
+        cd ../DurableUserProvisioning.OktaHandler
         func azure functionapp publish func-eventdemo-okta --dotnet
