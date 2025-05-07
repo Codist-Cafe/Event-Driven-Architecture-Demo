@@ -47,5 +47,5 @@ jobs:
         
     - name: Publish Okta Handler Function
       run: |
-        cd ../DurableUserProvisioning.OktaHandler
+        cd DurableUserProvisioning.OktaHandler
         func azure functionapp publish func-eventdemo-okta --dotnet-isolated
