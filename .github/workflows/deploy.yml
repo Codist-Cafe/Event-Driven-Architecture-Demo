@@ -43,9 +43,9 @@ jobs:
     - name: Publish Durable Orchestrator Function
       run: |
         cd DurableUserProvisioning.Functions
-        func azure functionapp publish func-eventdemo-orchestrator --dotnet
-
+        func azure functionapp publish func-eventdemo-orchestrator --dotnet-isolated
+        
     - name: Publish Okta Handler Function
       run: |
         cd ../DurableUserProvisioning.OktaHandler
-        func azure functionapp publish func-eventdemo-okta --dotnet
+        func azure functionapp publish func-eventdemo-okta --dotnet-isolated
