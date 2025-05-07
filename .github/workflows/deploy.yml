@@ -1,0 +1,48 @@
+name: Deploy Infra + Azure Functions
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6
+
+    - name: Terraform Init
+      run: terraform -chdir=infrastructure init
+
+    - name: Terraform Plan
+      run: terraform -chdir=infrastructure plan -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+
+    - name: Terraform Apply
+      run: terraform -chdir=infrastructure apply -auto-approve -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+
+    - name: Set up Azure Functions Core Tools
+      uses: Azure/functions-action@v1
+      with:
+        app-name: func-eventdemo-orchestrator
+        package: DurableUserProvisioning.Functions
+
+    - name: Publish Durable Orchestrator Function
+      run: |
+        cd DurableUserProvisioning.Functions
+        func azure functionapp publish func-eventdemo-orchestrator --dotnet
+
+    - name: Publish Okta Handler Function
+      run: |
+        cd DurableUserProvisioning.OktaHandler
+        func azure functionapp publish func-eventdemo-okta --dotnet

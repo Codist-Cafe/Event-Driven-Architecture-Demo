@@ -1,0 +1,8 @@
+event_demo_location                = "West US"
+event_demo_resource_group_name    = "rg-event-demo"
+event_demo_cosmos_account_name    = "eventdemocosmosacct"
+event_demo_eventgrid_topic_name   = "eventdemo-topic"
+event_demo_orchestrator_app_name  = "func-eventdemo-orchestrator"
+event_demo_okta_app_name          = "func-eventdemo-okta"
+event_demo_okta_domain            = "https://your-org.okta.com"
+event_demo_okta_token             = "REPLACE_WITH_YOUR_OKTA_TOKEN"

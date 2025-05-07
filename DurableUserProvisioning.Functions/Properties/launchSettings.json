@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "DurableUserProvisioning.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7071"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 32228,
+      "useSSL": false
+    }
+  }
+}
