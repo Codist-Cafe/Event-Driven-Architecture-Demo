@@ -37,6 +37,8 @@ public class HandleOktaEvent
     public async Task Run([EventGridTrigger] EventGridEvent eventGridEvent)
     {
         _logger.LogInformation("Okta event received: {EventType}", eventGridEvent.EventType);
+        _logger.LogInformation("Okta event received: {EventData}", eventGridEvent.Data.ToString());
+
 
         var user = JsonSerializer.Deserialize<Models.User>(eventGridEvent.Data.ToString());
         if (user == null)
@@ -45,7 +47,7 @@ public class HandleOktaEvent
             return;
         }
 
-        _logger.LogInformation("Creating user {Email} in Okta", user.Email);
+        _logger.LogInformation("Creating user {Username} ({Email}) in Okta.", user.Name, user.Email);
 
         try
         {
@@ -64,7 +66,7 @@ public class HandleOktaEvent
         }
         catch (OktaApiException ex)
         {
-            _logger.LogError(ex, "Failed to create user in Okta");
+            _logger.LogError(ex, $"Failed to create user in Okta.{ex.Message}");
         }
     }
 }
