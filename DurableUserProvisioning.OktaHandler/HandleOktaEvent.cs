@@ -66,7 +66,10 @@ public class HandleOktaEvent
         }
         catch (OktaApiException ex)
         {
-            _logger.LogError(ex, $"Failed to create user in Okta.{ex.Message}");
+            _logger.LogError(ex, "Failed to create user in Okta. Error: {ErrorSummary}, Code: {ErrorCode}, Details: {Details}",
+                ex.ErrorSummary, ex.ErrorCode, ex.InnerException?.Message ?? "None");
+            throw;
         }
+
     }
 }
