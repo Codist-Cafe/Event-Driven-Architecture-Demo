@@ -44,6 +44,8 @@ public class SaveUserToCosmos
         catch (CosmosException ex)
         {
             _logger.LogError(ex, "Cosmos DB error saving user {UserId}. Status: {Status}", user.Id, ex.StatusCode);
+            _logger.LogError("User data: {@User}", user);
+
             throw;
         }
         catch (Exception ex)
