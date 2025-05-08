@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using DurableUserProvisioning.Models;
-using Newtonsoft.Json;
 
 namespace DurableUserProvisioning.Functions;
 
@@ -20,8 +17,11 @@ public class SaveUserToCosmos
 
         var connectionString = config["CosmosDBConnection"]
                                ?? throw new ArgumentException("Missing CosmosDBConnection in configuration.");
-
-        var cosmosClient = new CosmosClient(connectionString);
+        var cosmosClientOptions = new CosmosClientOptions
+        {
+            Serializer = new SystemTextJsonCosmosSerializer()
+        };
+        var cosmosClient = new CosmosClient(connectionString, cosmosClientOptions);
         _container = cosmosClient.GetContainer("UserDb", "Users");
     }
 
@@ -31,9 +31,8 @@ public class SaveUserToCosmos
         try
         {
             _logger.LogInformation("Saving user to Cosmos DB: {UserId}, {Email}, {UserName}", user.Id, user.Email, user.Name);
-
-            _logger.LogInformation("Serialized User: {UserJson}", JsonConvert.SerializeObject(user));
-
+            string userJson = JsonSerializer.Serialize(user);
+            _logger.LogInformation("Serialized User: {UserJson}", userJson);
             var response = await _container.UpsertItemAsync(user, new PartitionKey(user.Id));
 
             _logger.LogInformation("User saved. Status Code: {StatusCode}", response.StatusCode);
