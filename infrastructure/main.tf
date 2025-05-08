@@ -1,4 +1,14 @@
-﻿provider "azurerm" {
+﻿terraform {
+  backend "azurerm" {
+    resource_group_name  = "rg-event-demo"
+    storage_account_name = "tfstateacctdemo123"
+    container_name       = "tfstate"
+    key                  = "terraform.tfstate"
+  }
+}
+
+
+provider "azurerm" {
   features {}
   subscription_id = "92672e52-ee20-4d1e-84c1-2c3f0ca94fa1"
 }
@@ -62,7 +72,6 @@ resource "azurerm_key_vault_access_policy" "local_user_access" {
 
   secret_permissions = ["Get", "Set", "List"]
 }
-
 
 resource "azurerm_key_vault_secret" "function_key" {
   name         = "FunctionKeyProvision"
