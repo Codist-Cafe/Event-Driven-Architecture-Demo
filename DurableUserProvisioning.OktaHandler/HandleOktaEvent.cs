@@ -7,12 +7,12 @@ namespace DurableUserProvisioning.OktaHandler;
 
 public static class HandleOktaEvent
 {
-    [Function("HandleOktaEvent")]
+    [Function(nameof(HandleOktaEvent))]
     public static void Run(
         [EventGridTrigger] EventGridEvent eventGridEvent,
         FunctionContext context)
     {
-        var logger = context.GetLogger("HandleOktaEvent");
+        var logger = context.GetLogger(nameof(HandleOktaEvent));
 
         logger.LogInformation("Okta event received.");
         logger.LogInformation("Event Type: {EventType}", eventGridEvent.EventType);
@@ -22,7 +22,7 @@ public static class HandleOktaEvent
         try
         {
             // Deserialize event data as needed
-            var json = eventGridEvent.Data.ToString();
+            var json = eventGridEvent.Data!.ToString();
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
