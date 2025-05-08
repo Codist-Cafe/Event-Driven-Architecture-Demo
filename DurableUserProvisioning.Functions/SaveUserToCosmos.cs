@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DurableUserProvisioning.Models;
+using Newtonsoft.Json;
 
 namespace DurableUserProvisioning.Functions;
 
@@ -27,15 +28,11 @@ public class SaveUserToCosmos
     [Function("SaveUserToCosmos")]
     public async Task Run([ActivityTrigger] Models.User user)
     {
-        if (string.IsNullOrWhiteSpace(user?.Id))
-        {
-            _logger.LogError("User Id is null or empty.");
-            throw new ArgumentException("User Id must be provided.");
-        }
-
         try
         {
             _logger.LogInformation("Saving user to Cosmos DB: {UserId}, {Email}, {UserName}", user.Id, user.Email, user.Name);
+
+            _logger.LogInformation("Serialized User: {UserJson}", JsonConvert.SerializeObject(user));
 
             var response = await _container.UpsertItemAsync(user, new PartitionKey(user.Id));
 
