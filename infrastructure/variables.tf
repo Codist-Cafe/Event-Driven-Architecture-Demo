@@ -4,23 +4,28 @@ variable "event_demo_location" {
 }
 
 variable "event_demo_resource_group_name" {
-  default = "rg-event-demo"
+  description = "Name of the resource group"
+  default     = "rg-event-demo"
 }
 
 variable "event_demo_cosmos_account_name" {
-  default = "eventdemocosmosacct"
+  description = "Name of the Cosmos DB account"
+  default     = "eventdemocosmosacct"
 }
 
 variable "event_demo_eventgrid_topic_name" {
-  default = "eventdemo-topic"
+  description = "Name of the Event Grid topic"
+  default     = "eventdemo-topic"
 }
 
 variable "event_demo_orchestrator_app_name" {
-  default = "func-eventdemo-orchestrator"
+  description = "Name of the Orchestrator Azure Function App"
+  default     = "func-eventdemo-orchestrator"
 }
 
 variable "event_demo_okta_app_name" {
-  default = "func-eventdemo-okta"
+  description = "Name of the Okta Handler Azure Function App"
+  default     = "func-eventdemo-okta"
 }
 
 variable "event_demo_okta_domain" {
@@ -34,10 +39,6 @@ variable "event_demo_okta_token" {
 }
 
 variable "event_demo_function_key" {
-  description = "The provisioning function key stored in Key Vault"
+  description = "Provisioning function key stored in Key Vault"
   sensitive   = true
-}
-
-variable "github_actions_sp_object_id" {
-  description = "The objectId of the GitHub Actions service principal"
 }

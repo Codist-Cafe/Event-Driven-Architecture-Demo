@@ -14,6 +14,9 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+# ─────────────────────────────────────────────────────────────
+# Resource Group & Storage
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_resource_group" "rg" {
   name     = var.event_demo_resource_group_name
   location = var.event_demo_location
@@ -27,20 +30,18 @@ resource "azurerm_storage_account" "storage" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_service_plan" "plan" {
-  name                = "event-demo-plan"
-  location            = var.event_demo_location
-  resource_group_name = azurerm_resource_group.rg.name
-  os_type             = "Linux"
-  sku_name            = "Y1"
-}
-
+# ─────────────────────────────────────────────────────────────
+# Identity
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_user_assigned_identity" "function_identity" {
   name                = "uami-eventdemo-func"
   location            = var.event_demo_location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
+# ─────────────────────────────────────────────────────────────
+# Key Vault & Secrets
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_key_vault" "kv" {
   name                        = "kv-eventdemo"
   location                    = var.event_demo_location
@@ -55,7 +56,6 @@ resource "azurerm_key_vault_access_policy" "function_app_access" {
   key_vault_id = azurerm_key_vault.kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.function_identity.principal_id
-
   secret_permissions = ["Get", "Set", "List"]
 
   depends_on = [
@@ -64,18 +64,10 @@ resource "azurerm_key_vault_access_policy" "function_app_access" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "local_user_access" {
+resource "azurerm_key_vault_access_policy" "current_user_access" {
   key_vault_id = azurerm_key_vault.kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  secret_permissions = ["Get", "Set", "List"]
-}
-
-resource "azurerm_key_vault_access_policy" "github_actions_access" {
-  key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = var.github_actions_sp_object_id  # You need to pass this as a var
+  object_id    = "8b5e1fca-5ac5-4b71-8161-0fe915d65fc5"
 
   secret_permissions = ["Get", "Set", "List"]
 }
@@ -85,12 +77,15 @@ resource "azurerm_key_vault_secret" "function_key" {
   value        = var.event_demo_function_key
   key_vault_id = azurerm_key_vault.kv.id
 
-  depends_on = [
-    azurerm_key_vault_access_policy.function_app_access,
-    azurerm_key_vault_access_policy.local_user_access
-  ]
+    depends_on = [
+      azurerm_key_vault_access_policy.function_app_access,
+      azurerm_key_vault_access_policy.current_user_access
+    ]
 }
 
+# ─────────────────────────────────────────────────────────────
+# Cosmos DB
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_cosmosdb_account" "cosmos" {
   name                = var.event_demo_cosmos_account_name
   location            = var.event_demo_location
@@ -122,12 +117,29 @@ resource "azurerm_cosmosdb_sql_container" "users" {
   partition_key_paths = ["/id"]
 }
 
+# ─────────────────────────────────────────────────────────────
+# Event Grid
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_eventgrid_topic" "topic" {
   name                = var.event_demo_eventgrid_topic_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.event_demo_location
 }
 
+# ─────────────────────────────────────────────────────────────
+# Service Plan
+# ─────────────────────────────────────────────────────────────
+resource "azurerm_service_plan" "plan" {
+  name                = "event-demo-plan"
+  location            = var.event_demo_location
+  resource_group_name = azurerm_resource_group.rg.name
+  os_type             = "Linux"
+  sku_name            = "Y1"
+}
+
+# ─────────────────────────────────────────────────────────────
+# Azure Function Apps
+# ─────────────────────────────────────────────────────────────
 resource "azurerm_linux_function_app" "orchestrator" {
   name                       = var.event_demo_orchestrator_app_name
   location                   = var.event_demo_location
