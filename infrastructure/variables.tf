@@ -37,3 +37,7 @@ variable "event_demo_function_key" {
   description = "The provisioning function key stored in Key Vault"
   sensitive   = true
 }
+
+variable "github_actions_sp_object_id" {
+  description = "The objectId of the GitHub Actions service principal"
+}

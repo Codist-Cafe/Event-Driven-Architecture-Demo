@@ -34,7 +34,8 @@ jobs:
       run: |
         terraform -chdir=infrastructure plan \
           -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
-          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}" \
+          -var="github_actions_sp_object_id=${{ secrets.SP_OBJECT_ID }}"
       env:
         ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
@@ -45,7 +46,8 @@ jobs:
       run: |
         terraform -chdir=infrastructure apply -auto-approve \
           -var="event_demo_okta_domain=${{ secrets.OKTA_DOMAIN }}" \
-          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}"
+          -var="event_demo_okta_token=${{ secrets.OKTA_TOKEN }}" \
+          -var="github_actions_sp_object_id=${{ secrets.SP_OBJECT_ID }}"
       env:
         ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
         ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}

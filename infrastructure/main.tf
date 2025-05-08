@@ -72,6 +72,14 @@ resource "azurerm_key_vault_access_policy" "local_user_access" {
   secret_permissions = ["Get", "Set", "List"]
 }
 
+resource "azurerm_key_vault_access_policy" "github_actions_access" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = var.github_actions_sp_object_id  # You need to pass this as a var
+
+  secret_permissions = ["Get", "Set", "List"]
+}
+
 resource "azurerm_key_vault_secret" "function_key" {
   name         = "FunctionKeyProvision"
   value        = var.event_demo_function_key
