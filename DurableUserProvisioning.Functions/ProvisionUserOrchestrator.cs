@@ -1,11 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DurableUserProvisioning.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DurableUserProvisioning.Functions;
 public static class ProvisionUserOrchestrator
@@ -14,11 +10,19 @@ public static class ProvisionUserOrchestrator
     public static async Task Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
+        var logger = context.CreateReplaySafeLogger(nameof(ProvisionUserOrchestrator));
         var user = context.GetInput<User>();
 
+        logger.LogInformation("Orchestration started for user: {UserId} - {Email} - {UserName}", user!.Id, user.Email, user.Name);
+
         // Save user to Cosmos DB
+        logger.LogInformation("Calling SaveUserToCosmos activity.");
         await context.CallActivityAsync(nameof(SaveUserToCosmos), user);
 
+        // Publish event to Event Grid
+        logger.LogInformation("Calling PublishProvisioningEvent activity.");
         await context.CallActivityAsync(nameof(PublishProvisioningEvent), user);
+
+        logger.LogInformation("Orchestration completed for user: {UserId}", user.Id);
     }
 }
