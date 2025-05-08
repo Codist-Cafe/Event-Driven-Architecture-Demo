@@ -1,41 +1,70 @@
 ﻿using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Okta.Sdk.Abstractions;
+using Okta.Sdk.Model;
+using Okta.Sdk.Api;
+using Okta.Sdk.Client;
+
 
 namespace DurableUserProvisioning.OktaHandler;
 
-public static class HandleOktaEvent
-{
-    [Function(nameof(HandleOktaEvent))]
-    public static void Run(
-        [EventGridTrigger] EventGridEvent eventGridEvent,
-        FunctionContext context)
-    {
-        var logger = context.GetLogger(nameof(HandleOktaEvent));
 
-        logger.LogInformation("Okta event received.");
-        logger.LogInformation("Event Type: {EventType}", eventGridEvent.EventType);
-        logger.LogInformation("Subject: {Subject}", eventGridEvent.Subject);
-        logger.LogInformation("Data: {Data}", eventGridEvent.Data?.ToString());
+public class HandleOktaEvent
+{
+    private readonly ILogger<HandleOktaEvent> _logger;
+    private readonly IUserApi _userApi;
+
+    public HandleOktaEvent(IConfiguration config, ILogger<HandleOktaEvent> logger)
+    {
+        _logger = logger;
+
+        var oktaDomain = config["OktaDomain"];
+        var oktaToken = config["OktaToken"];
+
+        var clientConfiguration = new Configuration
+        {
+            OktaDomain = oktaDomain,
+            Token = oktaToken
+        };
+
+        _userApi = new UserApi(clientConfiguration);
+    }
+
+    [Function("HandleOktaEvent")]
+    public async Task Run([EventGridTrigger] EventGridEvent eventGridEvent)
+    {
+        _logger.LogInformation("Okta event received: {EventType}", eventGridEvent.EventType);
+
+        var user = JsonSerializer.Deserialize<Models.User>(eventGridEvent.Data.ToString());
+        if (user == null)
+        {
+            _logger.LogError("Invalid user payload.");
+            return;
+        }
+
+        _logger.LogInformation("Creating user {Email} in Okta", user.Email);
 
         try
         {
-            // Deserialize event data as needed
-            var json = eventGridEvent.Data!.ToString();
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            // Example: log a specific field if it exists
-            if (root.TryGetProperty("id", out var idProp))
-            {
-                logger.LogInformation("User ID in event: {UserId}", idProp.GetString());
-            }
+            var createdUser =
+                await _userApi.CreateUserAsync(new CreateUserRequest
+                {
+                    Profile = new UserProfile
+                    {
+                        FirstName = user.Name,
+                        LastName = user.Name,
+                        Email = user.Email,
+                        Login = user.Email
+                    }
+                });
+            _logger.LogInformation("User created in Okta: {Id}", createdUser.Id);
         }
-        catch (Exception ex)
+        catch (OktaApiException ex)
         {
-            logger.LogError(ex, "Error parsing Okta event data.");
-            throw;
+            _logger.LogError(ex, "Failed to create user in Okta");
         }
     }
 }

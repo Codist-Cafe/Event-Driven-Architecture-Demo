@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Okta.Sdk" Version="9.2.2" />
+    <PackageReference Include="Okta.Sdk.Abstractions" Version="4.0.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DurableUserProvisioning.Models\DurableUserProvisioning.Models.csproj" />
