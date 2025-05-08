@@ -60,6 +60,13 @@ public class HandleOktaEvent
                         LastName = user.Name,
                         Email = user.Email,
                         Login = user.Email
+                    },
+                    Credentials = new UserCredentials
+                    {
+                        Password = new PasswordCredential
+                        {
+                            Value = "D1sturB1ng"
+                        }
                     }
                 });
             _logger.LogInformation("User created in Okta: {Id}", createdUser.Id);
