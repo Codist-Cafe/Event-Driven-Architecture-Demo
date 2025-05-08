@@ -1,10 +1,12 @@
-provider "azurerm" {
+﻿provider "azurerm" {
   features {}
   subscription_id = "92672e52-ee20-4d1e-84c1-2c3f0ca94fa1"
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.event_demo_resource_group_name}"
+  name     = var.event_demo_resource_group_name
   location = var.event_demo_location
 }
 
@@ -30,9 +32,11 @@ resource "azurerm_cosmosdb_account" "cosmos" {
   resource_group_name = azurerm_resource_group.rg.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
+
   consistency_policy {
     consistency_level = "Session"
   }
+
   geo_location {
     location          = var.event_demo_location
     failover_priority = 0
@@ -50,14 +54,30 @@ resource "azurerm_cosmosdb_sql_container" "users" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmos.name
   database_name       = azurerm_cosmosdb_sql_database.db.name
+  partition_key_paths = ["/id"]
   depends_on          = [azurerm_cosmosdb_account.cosmos]
-  partition_key_paths  = ["/id"]
 }
 
 resource "azurerm_eventgrid_topic" "topic" {
   name                = var.event_demo_eventgrid_topic_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.event_demo_location
+}
+
+resource "azurerm_key_vault" "kv" {
+  name                        = "kv-eventdemo"
+  location                    = var.event_demo_location
+  resource_group_name         = azurerm_resource_group.rg.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+}
+
+resource "azurerm_key_vault_secret" "function_key" {
+  name         = "FunctionKeyProvision"
+  value        = var.event_demo_function_key
+  key_vault_id = azurerm_key_vault.kv.id
 }
 
 resource "azurerm_linux_function_app" "orchestrator" {
@@ -67,7 +87,12 @@ resource "azurerm_linux_function_app" "orchestrator" {
   service_plan_id            = azurerm_service_plan.plan.id
   storage_account_name       = azurerm_storage_account.storage.name
   storage_account_access_key = azurerm_storage_account.storage.primary_access_key
-  
+
+  identity {
+   type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.function_identity.id]
+  }
+
   site_config {
     application_stack {
       dotnet_version = "8.0"
@@ -76,11 +101,18 @@ resource "azurerm_linux_function_app" "orchestrator" {
 
   app_settings = {
     AzureWebJobsStorage      = azurerm_storage_account.storage.primary_connection_string
-    CosmosDBConnection = azurerm_cosmosdb_account.cosmos.primary_sql_connection_string
+    CosmosDBConnection       = azurerm_cosmosdb_account.cosmos.primary_sql_connection_string
     EventGridTopicEndpoint   = azurerm_eventgrid_topic.topic.endpoint
     EventGridKey             = azurerm_eventgrid_topic.topic.primary_access_key
+    FUNCTION_KEY_PROVISION   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.function_key.id})"
     FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
   }
+}
+
+resource "azurerm_user_assigned_identity" "function_identity" {
+  name                = "uami-eventdemo-func"
+  location            = var.event_demo_location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_linux_function_app" "okta_handler" {
@@ -90,10 +122,15 @@ resource "azurerm_linux_function_app" "okta_handler" {
   service_plan_id            = azurerm_service_plan.plan.id
   storage_account_name       = azurerm_storage_account.storage.name
   storage_account_access_key = azurerm_storage_account.storage.primary_access_key
+  
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.function_identity.id]
+  }
 
   site_config {
     application_stack {
-        dotnet_version = "8.0"
+      dotnet_version = "8.0"
     }
   }
 
@@ -103,4 +140,16 @@ resource "azurerm_linux_function_app" "okta_handler" {
     OktaToken                = var.event_demo_okta_token
     FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
   }
+}
+
+resource "azurerm_key_vault_access_policy" "function_app_access" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id = azurerm_user_assigned_identity.function_identity.principal_id
+
+  secret_permissions = ["Get"]
+  
+  depends_on = [
+    azurerm_linux_function_app.orchestrator
+  ]
 }

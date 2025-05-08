@@ -32,3 +32,8 @@ variable "event_demo_okta_token" {
   description = "Okta API token"
   sensitive   = true
 }
+
+variable "event_demo_function_key" {
+  description = "The provisioning function key stored in Key Vault"
+  sensitive   = true
+}
