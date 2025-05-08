@@ -35,7 +35,7 @@ public class SaveUserToCosmos
 
         try
         {
-            _logger.LogInformation("Saving user to Cosmos DB: {UserId}, {Email}", user.Id, user.Email);
+            _logger.LogInformation("Saving user to Cosmos DB: {UserId}, {Email}, {UserName}", user.Id, user.Email, user.Name);
 
             var response = await _container.UpsertItemAsync(user, new PartitionKey(user.Id));
 
