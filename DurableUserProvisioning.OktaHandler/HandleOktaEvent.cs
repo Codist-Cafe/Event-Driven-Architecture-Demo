@@ -1,28 +1,41 @@
-﻿using Azure.Messaging.EventGrid;
+﻿using System.Text.Json;
+using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace DurableUserProvisioning.OktaHandler;
-public class HandleOktaEvent
+
+public static class HandleOktaEvent
 {
-    private readonly ILogger _logger;
-
-    public HandleOktaEvent(ILoggerFactory loggerFactory)
-    {
-        _logger = loggerFactory.CreateLogger<HandleOktaEvent>();
-    }
-
     [Function("HandleOktaEvent")]
-    public async Task Run([EventGridTrigger] EventGridEvent eventGridEvent)
+    public static void Run(
+        [EventGridTrigger] EventGridEvent eventGridEvent,
+        FunctionContext context)
     {
-        _logger.LogInformation("Received event: {data}", eventGridEvent.Data.ToString());
+        var logger = context.GetLogger("HandleOktaEvent");
 
-        // Parse event and act on it
-        var userEvent = JsonSerializer.Deserialize<UserProvisionedEvent>(eventGridEvent.Data.ToString());
-        _logger.LogInformation($"Provisioned user {userEvent?.Id} for Okta.");
+        logger.LogInformation("Okta event received.");
+        logger.LogInformation("Event Type: {EventType}", eventGridEvent.EventType);
+        logger.LogInformation("Subject: {Subject}", eventGridEvent.Subject);
+        logger.LogInformation("Data: {Data}", eventGridEvent.Data?.ToString());
 
-        // You can now call Okta APIs or log/audit
-        await Task.CompletedTask;
+        try
+        {
+            // Deserialize event data as needed
+            var json = eventGridEvent.Data.ToString();
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            // Example: log a specific field if it exists
+            if (root.TryGetProperty("id", out var idProp))
+            {
+                logger.LogInformation("User ID in event: {UserId}", idProp.GetString());
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error parsing Okta event data.");
+            throw;
+        }
     }
 }
