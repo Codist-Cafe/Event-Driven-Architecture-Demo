@@ -10,6 +10,7 @@ public class SaveUserToCosmos
 {
     private readonly Container _container;
     private readonly ILogger<SaveUserToCosmos> _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public SaveUserToCosmos(IConfiguration config, ILogger<SaveUserToCosmos> logger)
     {
@@ -17,11 +18,16 @@ public class SaveUserToCosmos
 
         var connectionString = config["CosmosDBConnection"]
                                ?? throw new ArgumentException("Missing CosmosDBConnection in configuration.");
-        var cosmosClientOptions = new CosmosClientOptions
+
+
+        var serializer = new SystemTextJsonCosmosSerializer();
+        _jsonOptions = serializer.Options;
+
+        var cosmosClient = new CosmosClient(connectionString, new CosmosClientOptions
         {
-            Serializer = new SystemTextJsonCosmosSerializer()
-        };
-        var cosmosClient = new CosmosClient(connectionString, cosmosClientOptions);
+            Serializer = serializer
+        });
+
         _container = cosmosClient.GetContainer("UserDb", "Users");
     }
 
@@ -31,7 +37,7 @@ public class SaveUserToCosmos
         try
         {
             _logger.LogInformation("Saving user to Cosmos DB: {UserId}, {Email}, {UserName}", user.Id, user.Email, user.Name);
-            string userJson = JsonSerializer.Serialize(user);
+            string userJson = JsonSerializer.Serialize(user, _jsonOptions);
             _logger.LogInformation("Serialized User: {UserJson}", userJson);
             var response = await _container.UpsertItemAsync(user, new PartitionKey(user.Id));
 
