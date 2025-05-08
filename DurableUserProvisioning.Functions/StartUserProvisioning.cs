@@ -44,7 +44,7 @@ public static class StartUserProvisioning
         // Start Durable Orchestration
         try
         {
-            var instanceId = await client.ScheduleNewOrchestrationInstanceAsync("ProvisionUserOrchestrator", user);
+            var instanceId = await client.ScheduleNewOrchestrationInstanceAsync(nameof(ProvisionUserOrchestrator), user);
             
             logger.LogInformation("Started orchestration with ID = {InstanceId}", instanceId);
 

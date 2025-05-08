@@ -57,18 +57,12 @@ resource "azurerm_key_vault_access_policy" "function_app_access" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.function_identity.principal_id
   secret_permissions = ["Get", "Set", "List"]
-
-  depends_on = [
-    azurerm_user_assigned_identity.function_identity,
-    azurerm_key_vault.kv
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "current_user_access" {
   key_vault_id = azurerm_key_vault.kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = "8b5e1fca-5ac5-4b71-8161-0fe915d65fc5"
-
   secret_permissions = ["Get", "Set", "List"]
 }
 
@@ -77,10 +71,10 @@ resource "azurerm_key_vault_secret" "function_key" {
   value        = var.event_demo_function_key
   key_vault_id = azurerm_key_vault.kv.id
 
-    depends_on = [
-      azurerm_key_vault_access_policy.function_app_access,
-      azurerm_key_vault_access_policy.current_user_access
-    ]
+  depends_on = [
+    azurerm_key_vault_access_policy.function_app_access,
+    azurerm_key_vault_access_policy.current_user_access
+  ]
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -194,4 +188,26 @@ resource "azurerm_linux_function_app" "okta_handler" {
     OktaToken                = var.event_demo_okta_token
     FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
   }
+}
+
+resource "azurerm_eventgrid_event_subscription" "okta_handler" {
+  name  = "okta-handler-subscription"
+  scope = azurerm_eventgrid_topic.topic.id
+
+  event_delivery_schema = "EventGridSchema"
+
+  azure_function_endpoint {
+    function_id = "${azurerm_linux_function_app.okta_handler.id}/functions/HandleOktaEvent"
+    max_events_per_batch = 1
+    preferred_batch_size_in_kilobytes = 64
+  }
+
+  retry_policy {
+    max_delivery_attempts = 5
+    event_time_to_live    = 1440
+  }
+
+  depends_on = [
+    azurerm_linux_function_app.okta_handler
+  ]
 }
