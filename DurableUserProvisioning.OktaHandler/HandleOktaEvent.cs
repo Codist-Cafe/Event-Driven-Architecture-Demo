@@ -50,7 +50,7 @@ public class HandleOktaEvent
             return;
         }
 
-        _logger.LogInformation("Creating user {Username} ({Email}) in Okta.", user.Name, user.Email);
+        _logger.LogInformation("Creating user {FirstName} {LastName} ({Email}) in Okta.", user.FirstName, user.LastName, user.Email);
 
         try
         {
@@ -58,8 +58,8 @@ public class HandleOktaEvent
             {
                 Profile = new UserProfile
                 {
-                    FirstName = user.Name,
-                    LastName = user.Name,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Email = user.Email,
                     Login = user.Email
                 },
@@ -67,7 +67,7 @@ public class HandleOktaEvent
                 {
                     Password = new PasswordCredential
                     {
-                        Value = "D1sturB1ng!"
+                        Value = user.Password
                     }
                 }
             };

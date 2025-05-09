@@ -1,9 +1,7 @@
 ﻿namespace DurableUserProvisioning.Models;
 
-public class User
+public class OktaUser
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-
     public string Email { get; set; } = string.Empty;
 
     public string FirstName { get; set; } = string.Empty;

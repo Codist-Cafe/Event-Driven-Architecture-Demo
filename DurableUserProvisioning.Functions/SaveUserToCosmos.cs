@@ -42,6 +42,8 @@ public class SaveUserToCosmos
             var response = await _container.UpsertItemAsync(user, new PartitionKey(user.Id));
 
             _logger.LogInformation("User saved. Status Code: {StatusCode}", response.StatusCode);
+            var createdUser = response.Resource;
+            _logger.LogInformation($"Created User: {createdUser.Id}. {createdUser.Email}.");
         }
         catch (CosmosException ex)
         {

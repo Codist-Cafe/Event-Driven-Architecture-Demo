@@ -13,7 +13,7 @@ public static class ProvisionUserOrchestrator
         var logger = context.CreateReplaySafeLogger(nameof(ProvisionUserOrchestrator));
         var user = context.GetInput<User>();
 
-        logger.LogInformation("Orchestration started for user: {UserId} - {Email} - {UserName}", user!.Id, user.Email, user.Name);
+        logger.LogInformation("Orchestration started for user: {UserId} - {Email} - {FirstName} - {LastName}", user!.Id, user.Email, user.FirstName, user.LastName);
 
         // Save user to Cosmos DB
         logger.LogInformation("Calling SaveUserToCosmos activity.");

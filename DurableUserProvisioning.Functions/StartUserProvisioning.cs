@@ -9,13 +9,13 @@ namespace DurableUserProvisioning.Functions;
 
 public static class StartUserProvisioning
 {
-    [Function("StartUserProvisioning")]
+    [Function(nameof(StartUserProvisioning))]
     public static async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "users/provision")] HttpRequestData req,
         FunctionContext context,
         [DurableClient] DurableTaskClient client)
     {
-        var logger = context.GetLogger("StartUserProvisioning");
+        var logger = context.GetLogger(nameof(StartUserProvisioning));
         logger.LogInformation("Received user provisioning request.");
 
         // Deserialize incoming JSON body
