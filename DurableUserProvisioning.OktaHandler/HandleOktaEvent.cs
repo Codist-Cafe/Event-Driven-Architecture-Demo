@@ -24,6 +24,7 @@ public class HandleOktaEvent
         var oktaDomain = config["OktaDomain"];
         var oktaToken = config["OktaToken"];
 
+        _logger.LogInformation($"Domain: {oktaDomain}. Token: {oktaToken}.");
         var clientConfiguration = new Configuration
         {
             OktaDomain = oktaDomain,
@@ -51,24 +52,24 @@ public class HandleOktaEvent
 
         try
         {
-            var createdUser =
-                await _userApi.CreateUserAsync(new CreateUserRequest
+            var createUserRequest = new CreateUserRequest
+            {
+                Profile = new UserProfile
                 {
-                    Profile = new UserProfile
+                    FirstName = user.Name,
+                    LastName = user.Name,
+                    Email = user.Email,
+                    Login = user.Email
+                },
+                Credentials = new UserCredentials
+                {
+                    Password = new PasswordCredential
                     {
-                        FirstName = user.Name,
-                        LastName = user.Name,
-                        Email = user.Email,
-                        Login = user.Email
-                    },
-                    Credentials = new UserCredentials
-                    {
-                        Password = new PasswordCredential
-                        {
-                            Value = "D1sturB1ng"
-                        }
+                        Value = "D1sturB1ng!"
                     }
-                });
+                }
+            };
+            var createdUser = await _userApi.CreateUserAsync(createUserRequest);
             _logger.LogInformation("User created in Okta: {Id}", createdUser.Id);
         }
         catch (OktaApiException ex)
