@@ -30,11 +30,12 @@ variable "event_demo_okta_app_name" {
 
 variable "event_demo_okta_domain" {
   description = "Okta domain"
-  default     = "https://your-org.okta.com"
+  type		  = string
 }
 
 variable "event_demo_okta_token" {
   description = "Okta API token"
+  type		  = string
   sensitive   = true
 }
 
