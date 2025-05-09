@@ -369,3 +369,4 @@ FodyWeavers.xsd
 crash.log
 terraform.tfvars
 terraform.tfvars.json
+/infrastructure/terraform.tfvars
