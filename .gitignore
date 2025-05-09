@@ -370,3 +370,4 @@ FodyWeavers.xsd
 /infrastructure/terraform.tfvars
 /infrastructure/terraform.tfvars.json
 
+/infrastructure/tfplan
