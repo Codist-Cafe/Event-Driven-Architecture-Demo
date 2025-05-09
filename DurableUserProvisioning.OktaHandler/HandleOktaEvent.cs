@@ -31,7 +31,9 @@ public class HandleOktaEvent
             Token = oktaToken
         };
 
+        _logger.LogInformation("userApi creating.");
         _userApi = new UserApi(clientConfiguration);
+        _logger.LogInformation("userApi created.");
     }
 
     [Function("HandleOktaEvent")]

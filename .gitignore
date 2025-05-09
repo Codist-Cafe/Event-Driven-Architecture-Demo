@@ -363,10 +363,10 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
-crash.log
-terraform.tfvars
-terraform.tfvars.json
+/infrastructure/.terraform/
+/infrastructure/*.tfstate
+/infrastructure/*.tfstate.backup
+/infrastructure/crash.log
 /infrastructure/terraform.tfvars
+/infrastructure/terraform.tfvars.json
+
