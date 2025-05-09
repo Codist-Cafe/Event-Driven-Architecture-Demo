@@ -25,14 +25,14 @@ public class HandleOktaEvent
         var oktaToken = config["OktaToken"];
 
         _logger.LogInformation($"Domain: {oktaDomain}. Token: {oktaToken}.");
-        var clientConfiguration = new Configuration
+        var configuration = new Configuration
         {
             OktaDomain = oktaDomain,
             Token = oktaToken
         };
 
         _logger.LogInformation("userApi creating.");
-        _userApi = new UserApi(clientConfiguration);
+        _userApi = new UserApi(configuration);
         _logger.LogInformation("userApi created.");
     }
 
